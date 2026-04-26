@@ -1,7 +1,14 @@
 import { GoogleGenAI } from "@google/genai";
 import { StudyEvent, EventSubject } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+let ai: GoogleGenAI | null = null;
+
+function getAI() {
+  if (!ai) {
+    ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+  }
+  return ai;
+}
 
 export async function getCoachFeedback(event: StudyEvent, notes: string): Promise<string> {
   const prompt = `
@@ -25,7 +32,7 @@ export async function getCoachFeedback(event: StudyEvent, notes: string): Promis
   `;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
       model: "gemini-3-flash-preview",
       contents: prompt,
     });
