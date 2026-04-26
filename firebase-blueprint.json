@@ -1,0 +1,52 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores user prep progress and settings",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "overallProgress": { "type": "number" },
+        "examDate": { "type": "number", "description": "Timestamp of the main exam" },
+        "prepProgress": {
+          "type": "object",
+          "description": "Progress mapping for different subjects"
+        }
+      },
+      "required": ["uid", "email"]
+    },
+    "StudyEvent": {
+      "title": "Study Event",
+      "description": "A single entry in the study calendar",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "type": { "type": "string", "enum": ["study", "exam", "reminder", "deadline"] },
+        "subject": { "type": "string", "enum": ["Quant", "Reasoning", "Awareness", "English", "General"] },
+        "startTime": { "type": "number" },
+        "endTime": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "completed", "missed"] },
+        "reminded": { "type": "boolean" },
+        "completionNotes": { "type": "string" },
+        "isGoogleEvent": { "type": "boolean" },
+        "googleEventId": { "type": "string" }
+      },
+      "required": ["userId", "title", "startTime", "endTime"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "The root document for a user's prep data"
+    },
+    "/users/{userId}/events/{eventId}": {
+      "schema": "StudyEvent",
+      "description": "Events associated with a specific user"
+    }
+  }
+}

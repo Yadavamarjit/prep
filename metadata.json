@@ -1,0 +1,6 @@
+{
+  "name": "SSC CPO Prep Hub",
+  "description": "A high-performance study calendar and progress tracker for SSC CPO aspirants, featuring Google Calendar integration and exam deadline monitoring.",
+  "requestFramePermissions": ["notifications"],
+  "majorCapabilities": []
+}

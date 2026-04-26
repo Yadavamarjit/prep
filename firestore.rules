@@ -1,0 +1,82 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Phase 3: Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Phase 4: Entity Validations
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['uid', 'email']) &&
+             data.uid == request.auth.uid &&
+             data.email is string && data.email.size() <= 256 &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 128)) &&
+             (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 1024)) &&
+             (!('overallProgress' in data) || (data.overallProgress is number)) &&
+             (!('examDate' in data) || (data.examDate is number));
+    }
+
+    function isValidStudyEvent(data) {
+      return data.keys().hasAll(['userId', 'title', 'startTime', 'endTime']) &&
+             data.userId == request.auth.uid &&
+             data.title is string && data.title.size() <= 200 &&
+             data.startTime is number &&
+             data.endTime is number &&
+             (!('type' in data) || data.type in ['study', 'exam', 'reminder', 'deadline']) &&
+             (!('subject' in data) || data.subject in ['Quant', 'Reasoning', 'Awareness', 'English', 'General']) &&
+             (!('status' in data) || data.status in ['pending', 'completed', 'missed']) &&
+             (!('description' in data) || (data.description is string && data.description.size() <= 2000)) &&
+             (!('completionNotes' in data) || (data.completionNotes is string && data.completionNotes.size() <= 2000));
+    }
+
+    // 1. Users Collection
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserProfile(incoming());
+      allow update: if isOwner(userId) && isValidUserProfile(incoming()) && (
+        // Action: Profile Update
+        incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'overallProgress', 'examDate', 'prepProgress'])
+      );
+      allow delete: if false; // Profiles are rarely deleted by users
+
+      // 2. Events Subcollection
+      match /events/{eventId} {
+        allow list: if isOwner(userId); // Explicitly restricted to owner
+        allow get: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidStudyEvent(incoming());
+        allow update: if isOwner(userId) && isValidStudyEvent(incoming()) && (
+          // Action: Reschedule/Edit
+          incoming().diff(existing()).affectedKeys().hasAny(['title', 'description', 'startTime', 'endTime', 'type', 'subject', 'status', 'completionNotes'])
+        );
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    // Integration check
+    match /test/connection {
+      allow get: if isSignedIn();
+    }
+  }
+}
