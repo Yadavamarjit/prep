@@ -15,7 +15,6 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ user, events, onSetExamDate, onCompleteEvent }) => {
-  if (!user) return null;
   const now = Date.now();
   
   // Prioritize user's set exam date, fallback to nearest exam event
@@ -41,7 +40,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, events, onSetExamDat
     .sort((a, b) => a.startTime - b.startTime);
 
   const activeEvent = todaysEvents.find(e => now >= e.startTime && now <= e.endTime);
-  const nextEvent = todaysEvents.find(e => e.startTime > now && e.status !== 'completed');
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 mb-8">
@@ -118,87 +116,64 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, events, onSetExamDat
       </div>
 
       {/* Right Area: Agenda */}
-      <div className="w-full lg:w-96 flex flex-col">
-        <Card className="rounded-3xl shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-colors flex flex-col h-[520px]">
-          <CardHeader className="pb-4 shrink-0">
-              <div className="flex justify-between items-center">
-                 <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-indigo-600 rounded-full animate-pulse" />
-                    <CardTitle className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-widest">Today's Focus</CardTitle>
-                 </div>
+      <div className="w-full lg:w-80">
+        <Card className="rounded-3xl shadow-sm border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-colors h-full">
+          <CardHeader className="pb-2">
+              <div className="flex justify-between items-start">
+                 <CardTitle className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-widest">Today's Focus</CardTitle>
                  <CheckCircle className="h-4 w-4 text-slate-300 dark:text-slate-700" />
               </div>
           </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-            <div className="space-y-3 pb-4">
+          <CardContent>
+            <div className="space-y-4">
                {todaysEvents.length > 0 ? (
                    todaysEvents.map(e => {
                        const isActive = activeEvent?.id === e.id;
-                       const isNext = nextEvent?.id === e.id && !isActive;
                        const isPast = now > e.endTime && e.status !== 'completed';
-                       const isCompleted = e.status === 'completed';
                        
                        return (
                           <div 
                             key={e.id} 
                             className={cn(
-                                "relative flex gap-4 items-start p-4 rounded-2xl transition-all duration-300 group border",
-                                isActive ? "bg-indigo-600 border-indigo-500 shadow-xl shadow-indigo-100 dark:shadow-indigo-950 scale-[1.02] z-10" : 
-                                isNext ? "bg-white dark:bg-slate-800 border-indigo-100 dark:border-indigo-900 shadow-sm" :
-                                isCompleted ? "bg-slate-50/50 dark:bg-slate-900/50 border-transparent opacity-50" :
-                                "bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-800"
+                                "flex gap-4 items-start p-3 border-l-4 rounded-r-xl group transition-all",
+                                isActive ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-950/20 shadow-sm" : 
+                                e.status === 'completed' ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/10 opacity-60" :
+                                "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50"
                             )}
                           >
-                              {isNext && (
-                                  <div className="absolute -top-2 left-4 bg-indigo-600 text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-full tracking-widest shadow-sm">Next Mission</div>
-                              )}
-                              
                               <div className="flex-1">
-                                  <div className="flex justify-between items-start mb-1">
+                                  <div className="flex justify-between items-start">
                                     <p className={cn(
-                                        "text-sm font-bold leading-tight",
-                                        isActive ? "text-white" : "text-slate-900 dark:text-white",
-                                        isCompleted && "line-through text-slate-400 dark:text-slate-600"
+                                        "text-sm font-bold text-slate-900 dark:text-white",
+                                        e.status === 'completed' && "line-through text-slate-500 dark:text-slate-400"
                                     )}>
                                         {e.title}
                                     </p>
                                     {isActive && (
-                                        <div className="h-5 w-5 rounded-full bg-white/20 flex items-center justify-center">
-                                            <Zap className="h-3 w-3 text-white fill-white animate-pulse" />
-                                        </div>
+                                        <span className="text-[8px] bg-indigo-600 text-white px-1.5 py-0.5 rounded-full animate-pulse uppercase tracking-widest font-black">Active</span>
                                     )}
                                   </div>
-                                  
-                                  <div className="flex items-center gap-2 mb-2">
-                                      <p className={cn(
-                                          "text-[10px] font-bold uppercase tracking-widest",
-                                          isActive ? "text-indigo-100" : "text-slate-400 dark:text-slate-500"
-                                      )}>
-                                        {new Date(e.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {e.subject}
-                                      </p>
-                                      {isCompleted && <CheckCircle className="h-3 w-3 text-emerald-500" />}
-                                  </div>
-
-                                  {(isActive || isPast || isNext) && !isCompleted && (
+                                  <p className="text-[10px] text-slate-500 mt-1 uppercase font-mono tracking-wider">
+                                    {new Date(e.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {e.subject}
+                                  </p>
+                                  {(isActive || isPast) && e.status !== 'completed' && (
                                       <button 
                                         onClick={() => onCompleteEvent(e)}
-                                        className={cn(
-                                            "mt-1 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all",
-                                            isActive ? "bg-white text-indigo-600 hover:bg-indigo-50" : 
-                                            "bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60"
-                                        )}
+                                        className="mt-2 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 uppercase tracking-widest flex items-center gap-1"
                                       >
-                                          Commit Progress <CheckCircle className="h-3 w-3" />
+                                          Mark Complete <CheckCircle className="h-3 w-3" />
                                       </button>
                                   )}
-
-                                  {isCompleted && e.aiFeedback && (
-                                      <div className="mt-3 p-3 bg-white/50 dark:bg-slate-900/50 rounded-xl border border-white/20 dark:border-slate-800/50">
-                                          <p className="text-[9px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest flex items-center gap-1 mb-1.5">
-                                              <Zap className="h-2.5 w-2.5 fill-indigo-500" /> Strategic Insight
+                                  {e.status === 'completed' && e.completionNotes && (
+                                      <p className="mt-1 text-[9px] text-emerald-600 dark:text-emerald-400 italic">Notes: {e.completionNotes}</p>
+                                  )}
+                                  {e.status === 'completed' && e.aiFeedback && (
+                                      <div className="mt-2 p-2 bg-indigo-50/50 dark:bg-indigo-950/20 rounded-lg border border-indigo-100/50 dark:border-indigo-900/30">
+                                          <p className="text-[10px] font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-widest flex items-center gap-1 mb-1">
+                                              <Zap className="h-2.5 w-2.5 fill-indigo-500" /> Coach Intelligence
                                           </p>
-                                          <p className="text-[10px] text-slate-600 dark:text-slate-300 leading-relaxed font-medium italic">
-                                              "{e.aiFeedback}"
+                                          <p className="text-[10px] text-indigo-900/80 dark:text-indigo-200/80 leading-relaxed font-medium">
+                                              {e.aiFeedback}
                                           </p>
                                       </div>
                                   )}
@@ -207,9 +182,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, events, onSetExamDat
                        );
                    })
                ) : (
-                   <div className="text-center py-20 opacity-20">
-                      <Timer className="h-12 w-12 mx-auto mb-4" />
-                      <p className="text-xs font-black uppercase tracking-[0.3em]">No Active Focus</p>
+                   <div className="text-center py-12 opacity-40">
+                      <Timer className="h-8 w-8 mx-auto mb-2" />
+                      <p className="text-xs font-mono uppercase tracking-widest">Clear Schedule</p>
                    </div>
                )}
             </div>
