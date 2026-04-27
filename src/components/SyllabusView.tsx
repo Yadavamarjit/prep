@@ -5,6 +5,7 @@ import { Button } from './ui/button';
 import { CheckCircle2, Circle, ChevronRight, Zap, BarChart3, BookOpen } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useSyllabus } from '../hooks/useSyllabus';
+import { motion } from 'motion/react';
 
 interface SyllabusViewProps {
   userId: string;

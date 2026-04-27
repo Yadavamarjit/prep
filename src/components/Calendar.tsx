@@ -4,6 +4,7 @@ import { getCalendarDays, formatMonth, isSameMonth, isSameDay, addMonths, subMon
 import { cn } from '../lib/utils';
 import { Button } from './ui/button';
 import { StudyEvent } from '../types';
+import { motion } from 'motion/react';
 
 interface CalendarProps {
   events: StudyEvent[];

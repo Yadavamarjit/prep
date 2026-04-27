@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from './ui/button';
 import { Target } from 'lucide-react';
+import { motion } from 'motion/react';
 
 interface LoginProps {
   onLogin: () => void;
