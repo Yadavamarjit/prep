@@ -37,49 +37,58 @@ export const SyllabusView: React.FC<SyllabusViewProps> = ({ userId }) => {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Header Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Header Stats - Mobile Scrollable */}
+      <div className="flex overflow-x-auto pb-4 md:pb-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-4 no-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
         {syllabus.map(s => {
           const stats = getSubjectStats(s.id);
           const isActive = activeSubject === s.id;
           
           return (
-            <Card 
+            <motion.div
               key={s.id}
-              onClick={() => setActiveSubject(s.id)}
-              className={cn(
-                "rounded-3xl cursor-pointer transition-all duration-500 border-0 overflow-hidden relative group",
-                isActive ? "bg-slate-900 text-white shadow-2xl scale-[1.02]" : "bg-white hover:bg-slate-50 shadow-sm border border-slate-100"
-              )}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="shrink-0 w-[240px] md:w-auto"
             >
-              <CardContent className="p-6 relative z-10">
-                <div className="flex justify-between items-start mb-4">
-                  <div className={cn(
-                    "w-10 h-10 rounded-2xl flex items-center justify-center",
-                    isActive ? "bg-indigo-600" : "bg-slate-100 text-slate-400"
-                  )}>
-                    <BookOpen className="h-5 w-5" />
+              <Card 
+                onClick={() => setActiveSubject(s.id)}
+                className={cn(
+                  "rounded-[2rem] cursor-pointer transition-all duration-500 border-0 overflow-hidden relative group h-full",
+                  isActive ? "bg-slate-900 text-white shadow-[0_20px_40px_rgba(0,0,0,0.1)] scale-[1.02]" : "bg-white hover:bg-slate-50 shadow-sm border border-slate-100 dark:bg-slate-900 dark:border-slate-800"
+                )}
+              >
+                <CardContent className="p-6 relative z-10">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className={cn(
+                      "w-10 h-10 rounded-xl flex items-center justify-center",
+                      isActive ? "bg-indigo-600" : "bg-slate-100 dark:bg-slate-800 text-slate-400"
+                    )}>
+                      <BookOpen className="h-5 w-5" />
+                    </div>
+                    <BarChart3 className={cn("h-4 w-4", isActive ? "text-white/20" : "text-slate-200")} />
                   </div>
-                  <BarChart3 className={cn("h-4 w-4", isActive ? "text-white/20" : "text-slate-200")} />
-                </div>
-                <h3 className={cn("font-black text-sm uppercase tracking-wider mb-1", isActive ? "text-white" : "text-slate-900")}>
-                  {s.id === 'reasoning' ? 'Reasoning' : s.id === 'quant' ? 'Quantitative' : s.id === 'english' ? 'English' : 'Science'}
-                </h3>
-                <div className="flex items-baseline gap-2 mb-4">
-                  <span className="text-3xl font-black">{stats.percentage}%</span>
-                  <span className={cn("text-[10px] font-bold uppercase tracking-widest", isActive ? "text-white/40" : "text-slate-400")}>
-                    {stats.completed}/{stats.total} Chapters
-                  </span>
-                </div>
-                <Progress value={stats.percentage} className={cn("h-1.5", isActive ? "bg-white/10" : "bg-slate-100")} />
-              </CardContent>
-              {isActive && <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl" />}
-            </Card>
+                  <h3 className={cn("font-black text-xs uppercase tracking-[0.2em] mb-1", isActive ? "text-white" : "text-slate-900 dark:text-white")}>
+                    {s.id === 'reasoning' ? 'Reasoning' : s.id === 'quant' ? 'Quantitative' : s.id === 'english' ? 'English' : 'Science'}
+                  </h3>
+                  <div className="flex items-baseline gap-2 mb-4">
+                    <span className="text-3xl font-black">{stats.percentage}%</span>
+                    <span className={cn("text-[10px] font-black uppercase tracking-widest", isActive ? "text-white/40" : "text-slate-400")}>
+                      {stats.completed}/{stats.total}
+                    </span>
+                  </div>
+                  <div className={cn("w-full h-1.5 rounded-full overflow-hidden", isActive ? "bg-white/10" : "bg-slate-100 dark:bg-slate-800")}>
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${stats.percentage}%` }}
+                        className={cn("h-full", isActive ? "bg-indigo-500" : "bg-indigo-600")} 
+                      />
+                  </div>
+                </CardContent>
+                {isActive && <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl" />}
+              </Card>
+            </motion.div>
           );
         })}
-        
-        {/* Overall Global Progress Card removed from here to make space for 4 subjects, 
-            or we can move it to a full-width card above or below */}
       </div>
 
       <div className="grid grid-cols-1 gap-6">

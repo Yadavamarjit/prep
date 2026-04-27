@@ -84,7 +84,7 @@
     @apply border-slate-200 outline-none;
   }
   body {
-    @apply bg-slate-50 text-slate-900;
+    @apply bg-slate-50 text-slate-900 overflow-x-hidden;
   }
   html {
     @apply font-sans;
@@ -98,4 +98,32 @@
   .custom-scrollbar::-webkit-scrollbar-thumb {
     @apply bg-slate-200 dark:bg-slate-800 rounded-full;
   }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-slate-800/50;
+  }
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-linear-to-r from-indigo-600 to-rose-500;
+  }
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
 }
